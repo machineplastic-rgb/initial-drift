@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#141414">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Initial Drift · 峠</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Permanent+Marker&family=VT323&family=Yuji+Syuku&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root { --ink:#141414; --paper:#efebe1; --acc:#ffd23f; --hot:#ff2a6d; --cy:#3cf2ff; }
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { margin:0; height:100%; background:#141414; overflow:hidden; font-family:'Zen Kaku Gothic New', system-ui, sans-serif; color:var(--paper); user-select:none; -webkit-user-select:none; touch-action:none; }
+canvas { display:block; }
+#gl { position:fixed; inset:0; touch-action:none; }
+#garage { pointer-events:none; }
+.wrap, #sheet { touch-action:pan-y; -webkit-overflow-scrolling:touch; }
+#fx, #manga { position:fixed; inset:0; pointer-events:none; }
+#manga { display:none; pointer-events:auto; z-index:20; }
+.scr { position:fixed; inset:0; display:none; z-index:10; }
+.scr.on { display:block; }
+button { font-family:inherit; }
+
+/* ---------- VHS: líneas, banda de ruido y rótulos ---------- */
+#vhs { position:fixed; inset:0; pointer-events:none; z-index:30; background:repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px); mix-blend-mode:multiply; display:none; }
+#vhs.on { display:block; }
+#vhs::after { content:''; position:absolute; left:0; right:0; height:40px; top:-60px; background:linear-gradient(transparent, rgba(255,255,255,.08) 40%, rgba(255,255,255,.14) 50%, transparent); animation:band 6s linear infinite; mix-blend-mode:screen; }
+@keyframes band { to { top:110%; } }
+.osd { position:fixed; font:clamp(18px, 2.6vw, 30px) 'VT323', monospace; color:#fff; text-shadow:2px 0 rgba(255,0,90,.7), -2px 0 rgba(0,240,255,.7); pointer-events:none; z-index:31; letter-spacing:.06em; }
+#osdL { left:22px; top:16px; } #osdR { right:22px; top:16px; } #osdB { left:22px; bottom:14px; }
+.blink { animation:blink 1s steps(2) infinite; } @keyframes blink { 50% { opacity:0; } }
+
+/* ---------- glitch para textos ---------- */
+.glitch { position:relative; display:inline-block; }
+.glitch::before, .glitch::after { content:attr(data-t); position:absolute; inset:0; pointer-events:none; }
+.glitch::before { color:var(--cy); transform:translate(-3px, 0); clip-path:inset(0 0 60% 0); animation:gl1 2.4s infinite steps(1); mix-blend-mode:screen; opacity:.85; }
+.glitch::after { color:var(--hot); transform:translate(3px, 0); clip-path:inset(55% 0 0 0); animation:gl2 3.1s infinite steps(1); mix-blend-mode:screen; opacity:.85; }
+@keyframes gl1 { 0%,86%,100% { clip-path:inset(0 0 100% 0); } 87% { clip-path:inset(10% 0 55% 0); transform:translate(-8px,0); } 90% { clip-path:inset(60% 0 8% 0); transform:translate(6px,0); } 93% { clip-path:inset(30% 0 40% 0); transform:translate(-4px,0); } }
+@keyframes gl2 { 0%,80%,100% { clip-path:inset(100% 0 0 0); } 81% { clip-path:inset(70% 0 5% 0); transform:translate(9px,0); } 84% { clip-path:inset(20% 0 62% 0); transform:translate(-7px,0); } 88% { clip-path:inset(45% 0 30% 0); transform:translate(4px,0); } }
+.shake { animation:shake .25s 2; } @keyframes shake { 25% { transform:translate(4px,-2px) rotate(1deg); } 75% { transform:translate(-4px,2px) rotate(-1deg); } }
+
+/* ---------- título ---------- */
+#title { display:none; }
+#title.on { display:flex; flex-direction:column; align-items:center; justify-content:center; }
+#title .kanji { position:absolute; right:-2vw; top:50%; transform:translateY(-52%); font:clamp(220px, 46vw, 620px)/1 'Yuji Syuku'; color:rgba(255,42,109,.22); pointer-events:none; }
+.logo { position:relative; text-align:center; transform:rotate(-7deg); pointer-events:none; transition:transform .35s cubic-bezier(.2,1.6,.4,1), margin .35s; }
+#title.menu .logo { transform:rotate(-7deg) scale(.62); margin:-4vh 0 -6vh; }
+.logo .a { font:clamp(64px, 15vw, 210px)/.82 'Permanent Marker'; color:var(--acc); -webkit-text-stroke:clamp(3px, .5vw, 7px) var(--ink); paint-order:stroke fill; text-shadow:clamp(5px, .9vw, 12px) clamp(5px, .9vw, 12px) 0 var(--ink); }
+.logo .b { font:clamp(60px, 14vw, 196px)/.82 'Permanent Marker'; color:var(--paper); -webkit-text-stroke:clamp(3px, .5vw, 7px) var(--ink); paint-order:stroke fill; text-shadow:clamp(5px, .9vw, 12px) clamp(5px, .9vw, 12px) 0 var(--hot); margin-left:1em; }
+.logo .k { font:900 clamp(14px, 2vw, 24px) 'Zen Kaku Gothic New'; letter-spacing:.5em; color:var(--paper); background:var(--ink); display:inline-block; padding:4px 14px; margin-top:16px; transform:skewX(-12deg); }
+.drip { position:absolute; width:6px; background:var(--acc); border-radius:0 0 4px 4px; }
+#press { margin-top:7vh; font:clamp(18px, 2.6vw, 30px) 'VT323', monospace; letter-spacing:.2em; color:#fff; text-shadow:2px 0 var(--hot), -2px 0 var(--cy); }
+#mainMenu { display:none; flex-direction:column; gap:12px; margin-top:5vh; align-items:center; }
+#mainMenu.on { display:flex; }
+.mi { pointer-events:auto; cursor:pointer; font:clamp(26px, 4.2vw, 46px)/1 'Dela Gothic One'; color:var(--paper); background:var(--ink); padding:10px 26px 12px; transform:rotate(-3deg) skewX(-10deg); border:3px solid var(--ink); box-shadow:6px 6px 0 rgba(0,0,0,.5); transition:transform .12s, background .12s, color .12s; position:relative; }
+.mi small { font:900 12px 'Zen Kaku Gothic New'; letter-spacing:.3em; display:block; color:var(--acc); margin-top:4px; }
+.mi:nth-child(even) { transform:rotate(2deg) skewX(-10deg); }
+.mi:hover, .mi.sel { background:var(--acc); color:var(--ink); transform:rotate(-1deg) skewX(-10deg) scale(1.06); }
+.mi:hover small, .mi.sel small { color:var(--ink); }
+.mi.lock { opacity:.45; }
+#ver { position:fixed; right:16px; bottom:12px; font:16px 'VT323'; color:rgba(255,255,255,.6); z-index:11; }
+
+/* ---------- paneles comunes ---------- */
+.panel { position:absolute; background:rgba(20,20,20,.86); border:3px solid var(--ink); box-shadow:8px 8px 0 rgba(0,0,0,.45); }
+.hdr { position:absolute; left:20px; top:54px; display:flex; gap:12px; align-items:center; z-index:2; flex-wrap:wrap; }
+.tag { font:900 13px 'Zen Kaku Gothic New'; letter-spacing:.2em; background:var(--ink); color:var(--paper); padding:7px 14px; transform:skewX(-10deg); cursor:pointer; border:2px solid var(--paper); pointer-events:auto; }
+.tag:hover { background:var(--acc); color:var(--ink); }
+.tag.on { background:var(--acc); color:var(--ink); }
+.h1 { font:clamp(30px, 5vw, 64px)/1 'Permanent Marker'; color:var(--acc); -webkit-text-stroke:2px var(--ink); paint-order:stroke fill; text-shadow:5px 5px 0 var(--ink); transform:rotate(-4deg); display:inline-block; }
+.seg { display:inline-flex; border:2px solid var(--paper); pointer-events:auto; }
+.seg button { font:900 12px 'Zen Kaku Gothic New'; letter-spacing:.14em; padding:7px 12px; border:0; background:var(--ink); color:var(--paper); cursor:pointer; }
+.seg button.on { background:var(--paper); color:var(--ink); }
+.big { pointer-events:auto; cursor:pointer; font:clamp(22px, 3vw, 34px)/1 'Dela Gothic One'; background:var(--acc); color:var(--ink); border:3px solid var(--ink); padding:12px 28px; transform:skewX(-10deg); box-shadow:6px 6px 0 var(--ink); }
+.big:hover { transform:skewX(-10deg) scale(1.05); }
+.big:active { transform:skewX(-10deg) translate(3px,3px); box-shadow:3px 3px 0 var(--ink); }
+
+/* ---------- garaje ---------- */
+#garage .left { position:absolute; left:3.5vw; top:calc(9vh + 50px); max-width:44vw; pointer-events:none; }
+#gName { font:clamp(40px, 6.4vw, 100px)/.9 'Permanent Marker'; color:var(--acc); -webkit-text-stroke:3px var(--ink); paint-order:stroke fill; text-shadow:7px 7px 0 var(--ink); transform:rotate(-6deg); transform-origin:left; }
+#gKana { font:clamp(18px, 2.2vw, 30px) 'Yuji Syuku'; color:var(--ink); margin:14px 0 0 6px; }
+#gOwner { display:inline-block; margin-top:8px; font:900 13px 'Zen Kaku Gothic New'; letter-spacing:.2em; background:var(--ink); color:var(--acc); padding:5px 12px; transform:skewX(-10deg); }
+#gStamp { display:inline-block; margin:8px 0 0 10px; font:20px 'Dela Gothic One'; color:var(--hot); border:3px solid var(--hot); padding:2px 10px; transform:rotate(-8deg); letter-spacing:.08em; background:rgba(239,235,225,.85); }
+#gQuote { margin-top:12px; font:700 14px 'Zen Kaku Gothic New'; color:var(--ink); max-width:360px; font-style:italic; }
+#sheet { right:2.5vw; top:calc(9vh + 30px); bottom:15vh; width:min(400px, 38vw); padding:16px 16px 12px; overflow:auto; pointer-events:auto; color:var(--paper); }
+#sheet h3 { margin:0 0 10px; font:20px 'Dela Gothic One'; color:var(--acc); letter-spacing:.06em; display:flex; justify-content:space-between; align-items:baseline; }
+#sheet h3 span { font:900 11px 'Zen Kaku Gothic New'; letter-spacing:.2em; color:var(--paper); background:var(--hot); padding:3px 8px; transform:skewX(-10deg); }
+.bar { display:grid; grid-template-columns:86px 1fr 34px; gap:8px; align-items:center; font:900 12px 'Zen Kaku Gothic New'; letter-spacing:.08em; margin:5px 0; }
+.bar i { display:block; height:12px; background:repeating-linear-gradient(90deg, var(--acc) 0 10px, transparent 10px 13px); border:2px solid var(--paper); transform:skewX(-14deg); position:relative; }
+.bar i b { position:absolute; inset:0; background:var(--ink); left:var(--v); }
+.bar em { font:18px 'VT323'; font-style:normal; color:var(--acc); }
+table.tech { width:100%; border-collapse:collapse; margin-top:10px; font-size:12.5px; }
+table.tech td { padding:4px 4px; border-bottom:1px dashed rgba(239,235,225,.25); vertical-align:top; }
+table.tech td:first-child { color:#a9a49a; font-weight:700; white-space:nowrap; width:1%; padding-right:12px; }
+table.tech td:last-child { font-weight:900; }
+.chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+.chips span { font:900 11px 'Zen Kaku Gothic New'; letter-spacing:.06em; background:var(--paper); color:var(--ink); padding:4px 8px; transform:skewX(-10deg); }
+.upg { display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:center; margin:7px 0; font:900 13px 'Zen Kaku Gothic New'; letter-spacing:.1em; }
+.upg .pips { display:flex; gap:4px; } .upg .pips i { width:14px; height:14px; border:2px solid var(--paper); transform:skewX(-14deg); } .upg .pips i.f { background:var(--acc); }
+.upg button { font:900 11px 'Zen Kaku Gothic New'; background:var(--acc); border:2px solid var(--ink); padding:5px 8px; cursor:pointer; letter-spacing:.06em; }
+.upg button:disabled { background:#555; color:#999; cursor:default; }
+.paints { display:flex; gap:7px; flex-wrap:wrap; margin-top:8px; }
+.paints i { width:26px; height:26px; border:3px solid var(--paper); cursor:pointer; transform:rotate(45deg) scale(.8); }
+.paints i.on { border-color:var(--acc); transform:rotate(45deg) scale(1.05); }
+#gList { position:absolute; left:0; right:0; bottom:16px; display:flex; gap:18px; justify-content:center; align-items:flex-end; pointer-events:auto; flex-wrap:wrap; padding:0 70px; }
+#gList div { font:clamp(15px, 1.7vw, 21px) 'Permanent Marker'; color:#8d897f; transform:rotate(-4deg); cursor:pointer; text-shadow:2px 2px 0 var(--ink); }
+#gList div.on { color:var(--paper); font-size:clamp(20px, 2.4vw, 30px); border-bottom:6px solid var(--acc); }
+.arrow { position:absolute; top:46%; pointer-events:auto; cursor:pointer; font:44px 'Dela Gothic One'; color:var(--paper); -webkit-text-stroke:3px var(--ink); paint-order:stroke fill; }
+#gPrev { left:14px; } #gNext { right:calc(2.5vw + min(400px, 38vw) + 14px); }
+#gGo { position:absolute; left:3.5vw; bottom:12vh; }
+#money { font:26px 'VT323'; color:var(--acc); background:var(--ink); padding:2px 12px; border:2px solid var(--acc); }
+
+/* ---------- historia ---------- */
+#story .wrap, #chapters .wrap, #free .wrap, #opts .wrap { position:absolute; inset:0; padding:110px 4vw 60px; overflow:auto; pointer-events:auto; background:linear-gradient(90deg, rgba(20,20,20,.92), rgba(20,20,20,.7)); }
+.cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:18px; margin-top:20px; }
+.card { cursor:pointer; background:var(--paper); color:var(--ink); border:3px solid var(--ink); box-shadow:6px 6px 0 var(--c, var(--acc)); position:relative; transform:rotate(var(--r, -1deg)); transition:transform .12s; overflow:hidden; }
+.card:hover { transform:rotate(0) scale(1.04); }
+.card canvas { width:100%; height:auto; display:block; background:var(--ink); }
+.card .nm { font:28px/1 'Permanent Marker'; padding:8px 10px 0; }
+.card .cr { font:900 11px 'Zen Kaku Gothic New'; letter-spacing:.14em; padding:2px 10px 8px; color:#555; }
+.card .pg { position:absolute; top:8px; right:8px; font:18px 'VT323'; background:var(--ink); color:var(--c); padding:0 6px; }
+.card .done { position:absolute; top:40%; left:-10px; right:-10px; text-align:center; font:22px 'Dela Gothic One'; color:var(--hot); border:3px solid var(--hot); background:rgba(239,235,225,.8); transform:rotate(-12deg); }
+.chap { display:flex; gap:16px; align-items:center; cursor:pointer; background:var(--paper); color:var(--ink); border:3px solid var(--ink); padding:12px 18px; margin:12px 0; transform:skewX(-6deg); box-shadow:6px 6px 0 var(--c, var(--acc)); max-width:760px; }
+.chap:hover { transform:skewX(-6deg) translateX(8px); }
+.chap .n { font:42px/1 'Dela Gothic One'; color:var(--c); -webkit-text-stroke:2px var(--ink); paint-order:stroke fill; min-width:54px; }
+.chap .t { font:22px 'Dela Gothic One'; } .chap .s { font:700 13px 'Zen Kaku Gothic New'; color:#555; }
+.chap.lock { opacity:.4; cursor:default; } .chap.lock:hover { transform:skewX(-6deg); }
+.chap .ok { margin-left:auto; font:20px 'VT323'; background:var(--ink); color:var(--acc); padding:0 8px; }
+#mangaTap { position:fixed; inset:0; z-index:21; display:none; cursor:pointer; }
+
+/* ---------- opciones y carrera libre ---------- */
+.row { display:flex; gap:14px; align-items:center; margin:16px 0; flex-wrap:wrap; }
+.row label { font:900 14px 'Zen Kaku Gothic New'; letter-spacing:.2em; min-width:170px; color:var(--acc); }
+.keys { font:700 14px/1.9 'Zen Kaku Gothic New'; color:var(--paper); max-width:640px; }
+.keys b { font:18px 'VT323'; background:var(--paper); color:var(--ink); padding:0 7px; margin-right:4px; }
+
+/* ---------- HUD ---------- */
+#hud { pointer-events:none; }
+#spd { position:absolute; right:3vw; bottom:4vh; text-align:right; }
+#spd .v { font:clamp(54px, 9vw, 120px)/.85 'Dela Gothic One'; color:var(--paper); -webkit-text-stroke:3px var(--ink); paint-order:stroke fill; text-shadow:5px 5px 0 var(--ink); font-variant-numeric:tabular-nums; }
+#spd .u { font:900 13px 'Zen Kaku Gothic New'; letter-spacing:.3em; background:var(--ink); color:var(--acc); padding:3px 10px; display:inline-block; transform:skewX(-10deg); }
+#nitro { width:clamp(160px, 22vw, 280px); height:18px; border:3px solid var(--ink); background:rgba(20,20,20,.6); margin:10px 0 0 auto; transform:skewX(-18deg); position:relative; overflow:hidden; }
+#nitro i { position:absolute; inset:0; width:0; background:repeating-linear-gradient(90deg, var(--cy) 0 12px, #b8fbff 12px 16px); }
+#nitro.full i { animation:nfl .3s infinite alternate; } @keyframes nfl { to { filter:brightness(1.5); } }
+#nitroL { font:900 11px 'Zen Kaku Gothic New'; letter-spacing:.3em; color:var(--cy); margin-top:4px; text-shadow:1px 1px 0 var(--ink); }
+#pos { position:absolute; left:3vw; top:3vh; }
+#pos .p { font:clamp(60px, 9vw, 120px)/.8 'Dela Gothic One'; color:var(--acc); -webkit-text-stroke:3px var(--ink); paint-order:stroke fill; text-shadow:6px 6px 0 var(--ink); }
+#pos .p sup { font-size:.4em; }
+#pos .gap { font:22px 'VT323'; color:#fff; background:var(--ink); padding:0 8px; display:inline-block; margin-top:6px; }
+#time { position:absolute; left:50%; top:2.5vh; transform:translateX(-50%); font:clamp(26px, 3.4vw, 40px) 'VT323'; color:#fff; background:rgba(20,20,20,.75); padding:0 14px; border:2px solid var(--ink); }
+#prog { position:absolute; left:50%; top:calc(2.5vh + 50px); transform:translateX(-50%); width:min(420px, 50vw); height:8px; background:rgba(20,20,20,.7); border:2px solid var(--ink); }
+#prog i { position:absolute; top:-6px; width:14px; height:14px; border:2px solid var(--ink); transform:translateX(-50%) rotate(45deg); }
+#drift { position:absolute; left:3vw; bottom:5vh; }
+#drift .pts { font:clamp(34px, 5vw, 64px)/1 'Permanent Marker'; color:var(--acc); -webkit-text-stroke:2px var(--ink); paint-order:stroke fill; text-shadow:4px 4px 0 var(--ink); font-variant-numeric:tabular-nums; }
+#drift .cmb { font:clamp(20px, 2.6vw, 30px) 'Dela Gothic One'; color:var(--paper); background:var(--hot); padding:0 10px; display:inline-block; transform:skewX(-10deg); }
+#drift .tot { font:20px 'VT323'; color:#fff; margin-top:4px; text-shadow:1px 1px 0 #000; }
+#drift.live .pts { animation:pulse .18s infinite alternate; } @keyframes pulse { to { transform:scale(1.06) rotate(-2deg); } }
+#pauseBtn { position:absolute; right:14px; top:12px; pointer-events:auto; font:20px 'Dela Gothic One'; background:var(--ink); color:var(--paper); border:2px solid var(--paper); width:44px; height:44px; cursor:pointer; }
+#banner { position:absolute; left:0; right:0; top:26vh; text-align:center; pointer-events:none; }
+#banner div { display:inline-block; font:clamp(22px, 3.4vw, 42px) 'Dela Gothic One'; background:var(--ink); color:var(--acc); padding:8px 24px; transform:skewX(-10deg); border:3px solid var(--acc); }
+
+/* ---------- táctil ---------- */
+#touch { display:none; position:fixed; inset:0; z-index:12; pointer-events:none; }
+#touch.on { display:block; }
+.tb { position:absolute; pointer-events:auto; border:3px solid rgba(239,235,225,.85); background:rgba(20,20,20,.45); color:var(--paper); font:900 15px 'Zen Kaku Gothic New'; letter-spacing:.08em; display:flex; align-items:center; justify-content:center; border-radius:16px; touch-action:none; }
+.tb.down { background:var(--acc); color:var(--ink); }
+#tL { left:16px; bottom:22px; width:96px; height:96px; font-size:34px; } #tR { left:124px; bottom:22px; width:96px; height:96px; font-size:34px; }
+#tHB { right:16px; bottom:22px; width:118px; height:96px; } #tN { right:146px; bottom:22px; width:84px; height:84px; color:var(--cy); }
+#tB { right:16px; bottom:130px; width:118px; height:58px; } #tG { right:146px; bottom:118px; width:84px; height:70px; }
+
+/* ---------- resultados y pausa ---------- */
+#results .wrap, #pause .wrap { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:auto; background:rgba(20,20,20,.55); }
+.res { background:var(--paper); color:var(--ink); border:4px solid var(--ink); box-shadow:12px 12px 0 var(--acc); padding:26px 34px; min-width:min(520px, 92vw); transform:rotate(-1.5deg); position:relative; }
+.res .rk { position:absolute; right:-24px; top:-44px; font:clamp(110px, 16vw, 170px)/1 'Dela Gothic One'; color:var(--acc); -webkit-text-stroke:5px var(--ink); paint-order:stroke fill; text-shadow:8px 8px 0 var(--ink); transform:rotate(10deg); }
+.res .w { font:clamp(34px, 5.4vw, 64px)/1 'Permanent Marker'; padding-right:clamp(70px, 11vw, 130px); }
+.res table { margin:16px 0; border-collapse:collapse; font-size:16px; }
+.res td { padding:4px 18px 4px 0; } .res td:first-child { font-weight:700; color:#666; } .res td:last-child { font:24px 'VT323'; }
+.res .btns { display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; }
+.res .btns .big { font-size:20px; padding:10px 18px; }
+.res .btns .big.alt { background:var(--ink); color:var(--paper); }
+
+@media (max-width:820px), (orientation:portrait) {
+  #garage .left { top:96px; max-width:90vw; }
+  #gQuote { display:none; }
+  #sheet { left:10px; right:10px; width:auto; top:auto; bottom:64px; height:36vh; }
+  #gNext { right:14px; } .arrow { top:32%; }
+  #gGo { left:auto; right:14px; bottom:calc(36vh + 76px); }
+  #gList { bottom:10px; gap:10px; padding:0 8px; }
+  .res { padding:20px; } .res .rk { right:-6px; }
+  #gName { font-size:36px; text-shadow:4px 4px 0 var(--ink); } #gKana { display:none; } #gOwner { font-size:10px; letter-spacing:.12em; } #gStamp { font-size:14px; }
+  #garage .left { top:104px; }
+  .hdr { gap:8px; } .tag { padding:6px 10px; font-size:11px; } #money { display:none; }
+  #gList { flex-wrap:nowrap; overflow-x:auto; justify-content:flex-start; bottom:8px; gap:14px; touch-action:pan-x; }
+  #gList div { white-space:nowrap; }
+  #osdB, #osdR { display:none !important; }
+  #time { font-size:24px; top:10px; } #prog { top:52px; width:44vw; }
+  #pos { top:auto; bottom:auto; top:64px; } #pos .p { font-size:56px; }
+  .cards { grid-template-columns:repeat(2, 1fr); gap:12px; } .card .nm { font-size:22px; } .card .cr { font-size:9px; }
+  .chap { padding:10px 12px; gap:10px; } .chap .t { font-size:17px; } .chap .n { font-size:32px; min-width:34px; }
+}
+@media (max-width:480px) {
+  #tL { left:10px; width:78px; height:84px; } #tR { left:96px; width:78px; height:84px; }
+  #tHB { right:10px; width:96px; height:84px; } #tN { right:114px; width:68px; height:72px; font-size:12px; }
+  #tB { right:10px; bottom:116px; width:96px; height:50px; } #tG { right:114px; bottom:104px; width:68px; height:58px; }
+}
+@media (pointer:coarse) { #spd { bottom:auto; top:13vh; } #drift { bottom:auto; top:30vh; } }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<canvas id="fx"></canvas>
+<canvas id="manga"></canvas>
+<div id="mangaTap"></div>
+<div id="vhs" class="on"></div>
+<div class="osd" id="osdL"><span class="blink">▶</span> PLAY</div>
+<div class="osd" id="osdR">SP</div>
+<div class="osd" id="osdB"></div>
+
+<!-- título -->
+<div class="scr" id="title">
+  <div class="kanji">峠</div>
+  <div class="logo" id="logo">
+    <div class="a glitch" data-t="INITIAL">INITIAL</div>
+    <div class="b glitch" data-t="DRIFT">DRIFT</div>
+    <div class="k">イニシャル · ドリフト · 霧雨峠</div>
+  </div>
+  <div id="press" class="blink">PULSA PARA EMPEZAR</div>
+  <div id="mainMenu">
+    <div class="mi" data-go="story">HISTORIA<small>物語 · 6 PILOTOS</small></div>
+    <div class="mi" data-go="free">CARRERA LIBRE<small>バトル · 1 VS 1</small></div>
+    <div class="mi" data-go="garage">GARAJE<small>ガレージ · FICHA Y MEJORAS</small></div>
+    <div class="mi" data-go="opts">OPCIONES<small>設定 · TRAMA · SONIDO</small></div>
+  </div>
+  <div id="ver">MONTE KIRISAME · v1.0</div>
+</div>
+
+<!-- garaje -->
+<div class="scr" id="garage">
+  <div class="hdr"><div class="tag" data-back>◀ VOLVER</div><div class="seg trama"><button data-s="liso">SIN TRAMA</button><button data-s="toon">CON TRAMA</button></div><div id="money">¥0</div></div>
+  <div class="left"><div id="gName"></div><div id="gKana"></div><div id="gOwner"></div><span id="gStamp"></span><div id="gQuote"></div></div>
+  <div class="panel" id="sheet"></div>
+  <div class="arrow" id="gPrev">◀</div><div class="arrow" id="gNext">▶</div>
+  <div id="gGo" class="big">CORRER ▶</div>
+  <div id="gList"></div>
+</div>
+
+<!-- historia: personajes -->
+<div class="scr" id="story"><div class="wrap">
+  <div class="hdr"><div class="tag" data-back>◀ VOLVER</div></div>
+  <div class="h1">HISTORIA · 物語</div>
+  <p style="max-width:720px;font-weight:700;line-height:1.6">Monte Kirisame. Hace diez años, la leyenda <b style="color:#ff7a1a">Onibi</b> cayó por el barranco en la Bajada del Amanecer. Seis pilotos, seis coches y una misma noche que lo cambia todo. Elige con quién bajas.</p>
+  <div class="cards" id="cards"></div>
+</div></div>
+
+<!-- historia: capítulos -->
+<div class="scr" id="chapters"><div class="wrap">
+  <div class="hdr"><div class="tag" data-back>◀ PILOTOS</div></div>
+  <div class="h1" id="chName"></div>
+  <div id="chList"></div>
+</div></div>
+
+<!-- carrera libre -->
+<div class="scr" id="free"><div class="wrap">
+  <div class="hdr"><div class="tag" data-back>◀ VOLVER</div></div>
+  <div class="h1">CARRERA LIBRE · バトル</div>
+  <div class="row"><label>TU COCHE</label><div class="seg" id="fCar"></div></div>
+  <div class="row"><label>RIVAL</label><div class="seg" id="fRival"></div></div>
+  <div class="row"><label>CLIMA</label><div class="seg" id="fWeather"></div></div>
+  <div class="row"><label>SENTIDO</label><div class="seg" id="fDir"><button data-v="0" class="on">BAJADA</button><button data-v="1">SUBIDA (GAME+)</button></div></div>
+  <div class="row"><label>DIFICULTAD</label><div class="seg" id="fSkill"><button data-v="0.88">CHILL</button><button data-v="1" class="on">CALLE</button><button data-v="1.1">LEYENDA</button></div></div>
+  <div class="row"><div class="big" id="fGo">¡A CORRER! ▶</div></div>
+</div></div>
+
+<!-- opciones -->
+<div class="scr" id="opts"><div class="wrap">
+  <div class="hdr"><div class="tag" data-back>◀ VOLVER</div></div>
+  <div class="h1">OPCIONES · 設定</div>
+  <div class="row"><label>TRAMA EN EL COCHE</label><div class="seg trama"><button data-s="liso">SIN TRAMA</button><button data-s="toon">CON TRAMA</button></div></div>
+  <div class="row"><label>MÚSICA Y SONIDO</label><div class="seg" id="oSnd"><button data-v="1">SÍ</button><button data-v="0">NO</button></div></div>
+  <div class="row"><label>EFECTO VHS</label><div class="seg" id="oVhs"><button data-v="1">SÍ</button><button data-v="0">NO</button></div></div>
+  <div class="row"><label>CALIDAD</label><div class="seg" id="oQ"><button data-v="hi">ALTA</button><button data-v="lo">RÁPIDA</button></div></div>
+  <div class="row"><label>ACELERACIÓN AUTO</label><div class="seg" id="oAuto"><button data-v="1">SÍ</button><button data-v="0">NO</button></div></div>
+  <div class="row"><label>CONTROLES</label><div class="keys"><b>↑ W</b> acelerar · <b>↓ S</b> frenar · <b>← → A D</b> girar · <b>ESPACIO</b> freno de mano (derrape) · <b>SHIFT</b> nitro · <b>P</b> pausa · <b>R</b> recolocar · <b>C</b> cámara<br>En el móvil: botones en pantalla. Derrapa para cargar el nitro y sumar puntos; cuanto más largo el derrape, más sube el combo.</div></div>
+  <div class="row"><div class="tag" id="oReset">BORRAR PARTIDA</div></div>
+</div></div>
+
+<!-- HUD -->
+<div class="scr" id="hud">
+  <div id="pos"><div class="p">1<sup>º</sup></div><div class="gap"></div></div>
+  <div id="time">0:00.00</div>
+  <div id="prog"></div>
+  <div id="drift"><div class="pts"></div><div class="cmb"></div><div class="tot"></div></div>
+  <div id="spd"><div class="v">0</div><div class="u">KM/H · 速度</div><div id="nitro"><i></i></div><div id="nitroL">NITRO · ニトロ</div></div>
+  <div id="banner"></div>
+  <button id="pauseBtn">II</button>
+</div>
+<div id="touch">
+  <div class="tb" id="tL" data-k="left">◀</div><div class="tb" id="tR" data-k="right">▶</div>
+  <div class="tb" id="tHB" data-k="hb">DERRAPE</div><div class="tb" id="tN" data-k="nitro">NITRO</div>
+  <div class="tb" id="tB" data-k="brake">FRENO</div><div class="tb" id="tG" data-k="gas">GAS</div>
+</div>
+
+<div class="scr" id="pause"><div class="wrap"><div class="res">
+  <div class="w">PAUSA · 一時停止</div>
+  <div class="btns"><div class="big" data-p="go">CONTINUAR</div><div class="big alt" data-p="retry">REINICIAR</div><div class="big alt" data-p="quit">SALIR</div></div>
+  <div class="row" style="margin-top:18px"><label style="color:#141414">TRAMA</label><div class="seg trama" style="border-color:#141414"><button data-s="liso">SIN TRAMA</button><button data-s="toon">CON TRAMA</button></div></div>
+</div></div></div>
+
+<div class="scr" id="results"><div class="wrap"><div class="res" id="resBox"></div></div></div>
+
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>
