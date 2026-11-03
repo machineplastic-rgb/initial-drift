@@ -43,6 +43,7 @@ export function createEnv(scene) {
     skyMat.uniforms.top.value.set(W.top); skyMat.uniforms.hor.value.set(W.hor); skyMat.uniforms.stars.value = W.stars;
     skyMat.uniforms.sunOn.value = W.sun === '#0' ? 0 : 1; if (W.sun !== '#0') skyMat.uniforms.sunC.value.set(W.sun);
     skyMat.uniforms.sunDir.value.set(...W.keyDir).normalize();
+    if (!scene.fog) scene.fog = new THREE.FogExp2(0x000000, 0.01);
     scene.fog.color.set(W.fog); scene.fog.density = W.dens;
     hemi.intensity = W.hemi; hemi.color.set(W.hemiSky); hemi.groundColor.set(W.hemiGr);
     key.intensity = W.key; key.color.set(W.keyC);

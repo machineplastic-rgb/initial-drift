@@ -440,7 +440,7 @@ function updateRace(dt) {
     RC.count -= dt; const c = Math.ceil(RC.count - 0.9);
     if (c !== RC.lastC && c >= 0 && c <= 3) { RC.lastC = c; const W = innerWidth, H = innerHeight;
       if (c > 0) { AU.sfx('beep'); fx.pop(String(c), W / 2, H * 0.38, { size: Math.min(240, W * 0.22), color: accent(cfg.car), rot: 0, vy: 0, life: 0.9 }); fx.pop(['', 'イチ', 'ニ', 'サン'][c], W / 2 + 140, H * 0.5, { size: 54, rot: -0.2, vy: 0, life: 0.9 }); aberr = 10; }
-      else { AU.sfx('go'); fx.pop('GO!', W / 2, H * 0.38, { size: Math.min(260, W * 0.24), color: '#ffd23f', comic: true, rot: -0.1, shadow: '#ff2a6d', vy: 0 }); fx.pop('ゴー!', W / 2 + 160, H * 0.54, { size: 64, vy: 0 }); fx.flash('#fff', 0.2); fx.glitch(0.35); aberr = 26; RC.state = 'race'; } }
+      else { AU.sfx('go'); fx.pop('GO!', W / 2, H * 0.38, { size: Math.min(260, W * 0.24), color: '#ffd23f', comic: true, rot: -0.1, shadow: '#ff2a6d', vy: 0 }); fx.pop('ゴー!', W / 2 + 160, H * 0.54, { size: 64, vy: 0 }); fx.flash('#fff', 0.2); fx.glitch(0.35); aberr = 26; RC.state = 'race'; if ((SV.seen.tut || 0) < 3) { SV.seen.tut = (SV.seen.tut || 0) + 1; save(); banner(TOUCH ? 'GIRA + DERRAPE PARA DERRAPAR · EL NITRO SE CARGA DERRAPANDO' : 'GIRA + ESPACIO = DERRAPE · SHIFT = NITRO (SE CARGA DERRAPANDO)', 3.5); } } }
     AU.engineUpdate(I.throttle ? 30 + rnd() * 6 : 6, 55, I.throttle, 0, false); R.update(dt, 0, false); P.place(); env.update(dt, P.pos); raceCam(dt); hud(); return;
   }
   if (RC.state === 'race') RC.t += dt;
@@ -547,7 +547,7 @@ function loop(now) {
   else if (mode === 'garage') { scene = gar; controls.update(); }
   else if (mode === 'race') updateRace(dt);
   else if (mode === 'pause') { scene = race; }
-  else if (mode === 'results') resultsCam(dt);
+  else if (mode === 'results' && RC) resultsCam(dt);
   if (mode !== 'pause') effects.update(dt);
   aberr *= Math.pow(0.03, dt);
   if (mode !== 'manga') { ink.mat.uniforms.aberr.value = aberr + (SV.trama === 'liso' ? 0.6 : 0.2) + (mode === 'race' ? 0 : 0.8); ink.render(scene, camera); }
@@ -571,4 +571,4 @@ async function boot() {
   renderer.setAnimationLoop(loop);
 }
 boot();
-window.__ID = { stop() { renderer.setAnimationLoop(null); }, tick(n = 1, step = 1 / 60, inp) { if (inp) Object.assign(K, inp); for (let i = 0; i < n; i++) { const now = performance.now(); last = now - step * 1000; loop(now); } return mode; }, K, get RC() { return RC; }, SV, startRace, goGarage, goStory, showManga, introPage, chapter, get mode() { return mode; }, camera, setTrama };
+window.__ID = { race, gar, ink, env, stop() { renderer.setAnimationLoop(null); }, tick(n = 1, step = 1 / 60, inp) { if (inp) Object.assign(K, inp); for (let i = 0; i < n; i++) { const now = performance.now(); last = now - step * 1000; loop(now); } return mode; }, K, get RC() { return RC; }, SV, startRace, goGarage, goStory, showManga, introPage, chapter, get mode() { return mode; }, camera, setTrama };

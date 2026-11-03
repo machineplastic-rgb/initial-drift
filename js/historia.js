@@ -110,7 +110,7 @@ export class MangaPage {
       const pan = P.panels[i]; this.panel(g, pan, bx, by, bw, bh, tx, ty, i); g.restore();
       g.lineWidth = 5; g.strokeStyle = '#141414'; g.beginPath(); pp.forEach(([x, y], j) => (j ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.stroke();
     });
-    if (P.vhs) { g.fillStyle = 'rgba(0,0,0,.12)'; for (let y = 0; y < H; y += 3) g.fillRect(0, y, W, 1); g.font = `${Math.min(30, W * 0.04)}px 'VT323', monospace`; g.fillStyle = '#fff'; g.shadowColor = '#0ff'; g.shadowBlur = 6; g.fillText('PLAY ▶', m * 2, m * 2 + 20); g.fillText(P.vhs, m * 2, H - m * 2); g.shadowBlur = 0; }
+    if (P.vhs) { g.fillStyle = 'rgba(0,0,0,.12)'; for (let y = 0; y < H; y += 3) g.fillRect(0, y, W, 1); g.font = `${Math.min(30, W * 0.04)}px 'VT323', monospace`; g.fillStyle = '#fff'; g.shadowColor = '#0ff'; g.shadowBlur = 6; g.textAlign = 'right'; g.fillText('PLAY ▶', W - m * 2, m * 2 + 20); g.textAlign = 'left'; g.fillText(P.vhs, m * 2, H - m * 2); g.shadowBlur = 0; }
     if (this.t > 1.2 && ((this.t * 2) | 0) % 2) { g.font = "900 14px 'Zen Kaku Gothic New'"; g.fillStyle = '#141414'; g.textAlign = 'right'; g.fillText('TOCA PARA SEGUIR ▶', W - m * 1.5, H - m * 0.6); g.textAlign = 'left'; }
   }
   panel(g, pan, x, y, w, h, tx, ty, i) {

@@ -70,8 +70,8 @@ export class Ink {
     const bg = scene.background, sh = r.shadowMap.autoUpdate, fog = scene.fog;
     if (U.lineW.value > 0) { // sin líneas no hace falta el pase de normales
       scene.background = null; scene.fog = null; r.shadowMap.autoUpdate = false;
-      scene.overrideMaterial = this.normalMat; r.setClearColor(0x8080ff, 1); r.setRenderTarget(this.rtN); r.clear(); r.render(scene, camera);
-      scene.overrideMaterial = null; scene.background = bg; scene.fog = fog; r.shadowMap.autoUpdate = sh; r.setClearColor(0x000000, 0);
+      try { scene.overrideMaterial = this.normalMat; r.setClearColor(0x8080ff, 1); r.setRenderTarget(this.rtN); r.clear(); r.render(scene, camera); }
+      finally { scene.overrideMaterial = null; scene.background = bg; scene.fog = fog; r.shadowMap.autoUpdate = sh; r.setClearColor(0x000000, 0); }
     }
     camera.layers.mask = mask;
     U.tColor.value = this.rt.texture; U.tDepth.value = this.rt.depthTexture; U.tNormal.value = this.rtN.texture; U.near.value = camera.near; U.far.value = camera.far;
