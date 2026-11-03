@@ -111,7 +111,7 @@ function vhs(on, osdOn = true) { const v = on && SV.vhs; $('#vhs').classList.tog
 const MONTHS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
 let tc = 0; function osd(dt) { tc += dt; if (((tc * 4) | 0) !== (((tc - dt) * 4) | 0)) { const s = tc | 0; $('#osdR').textContent = `SP ${String((s / 3600) | 0)}:${String(((s / 60) | 0) % 60).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; } }
 { const d = new Date(); $('#osdB').textContent = `${MONTHS[d.getMonth()]}. ${d.getDate()} ${d.getFullYear()}  ${d.getHours() >= 12 ? 'PM' : 'AM'} ${String(d.getHours() % 12 || 12).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; }
-let bannerT = 0; function banner(txt, t = 1.6) { $('#banner').innerHTML = `<div>${txt}</div>`; bannerT = t; }
+let bannerT = 0; function banner(txt, t = 1.6, small = false) { $('#banner').innerHTML = `<div${small ? ' style="font-size:clamp(13px,1.6vw,19px);max-width:92vw"' : ''}>${txt}</div>`; bannerT = t; }
 
 // ---------- título y demo ----------
 let started = false, demo = null;
@@ -440,7 +440,7 @@ function updateRace(dt) {
     RC.count -= dt; const c = Math.ceil(RC.count - 0.9);
     if (c !== RC.lastC && c >= 0 && c <= 3) { RC.lastC = c; const W = innerWidth, H = innerHeight;
       if (c > 0) { AU.sfx('beep'); fx.pop(String(c), W / 2, H * 0.38, { size: Math.min(240, W * 0.22), color: accent(cfg.car), rot: 0, vy: 0, life: 0.9 }); fx.pop(['', 'イチ', 'ニ', 'サン'][c], W / 2 + 140, H * 0.5, { size: 54, rot: -0.2, vy: 0, life: 0.9 }); aberr = 10; }
-      else { AU.sfx('go'); fx.pop('GO!', W / 2, H * 0.38, { size: Math.min(260, W * 0.24), color: '#ffd23f', comic: true, rot: -0.1, shadow: '#ff2a6d', vy: 0 }); fx.pop('ゴー!', W / 2 + 160, H * 0.54, { size: 64, vy: 0 }); fx.flash('#fff', 0.2); fx.glitch(0.35); aberr = 26; RC.state = 'race'; if ((SV.seen.tut || 0) < 3) { SV.seen.tut = (SV.seen.tut || 0) + 1; save(); banner(TOUCH ? 'GIRA + DERRAPE PARA DERRAPAR · EL NITRO SE CARGA DERRAPANDO' : 'GIRA + ESPACIO = DERRAPE · SHIFT = NITRO (SE CARGA DERRAPANDO)', 3.5); } } }
+      else { AU.sfx('go'); fx.pop('GO!', W / 2, H * 0.38, { size: Math.min(260, W * 0.24), color: '#ffd23f', comic: true, rot: -0.1, shadow: '#ff2a6d', vy: 0 }); fx.pop('ゴー!', W / 2 + 160, H * 0.54, { size: 64, vy: 0 }); fx.flash('#fff', 0.2); fx.glitch(0.35); aberr = 26; RC.state = 'race'; if ((SV.seen.tut || 0) < 3) { SV.seen.tut = (SV.seen.tut || 0) + 1; save(); banner(TOUCH ? 'GIRA + DERRAPE PARA DERRAPAR · EL NITRO SE CARGA DERRAPANDO' : 'GIRA + ESPACIO = DERRAPE · SHIFT = NITRO (SE CARGA DERRAPANDO)', 4, true); } } }
     AU.engineUpdate(I.throttle ? 30 + rnd() * 6 : 6, 55, I.throttle, 0, false); R.update(dt, 0, false); P.place(); env.update(dt, P.pos); raceCam(dt); hud(); return;
   }
   if (RC.state === 'race') RC.t += dt;
