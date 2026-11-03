@@ -68,21 +68,86 @@ export const RIVAL_NAMES = { kuroishi: 'KUROISHI BLACK', akane: 'AKANE · ONIBI'
 
 // ---------- silueta de personaje (sin ilustración: sombra con ojos y luz de borde) ----------
 export function drawPilot(g, x, y, s, id, accent) {
-  const hair = (PILOTS[id] || { hair: 'long' }).hair;
-  g.save(); g.translate(x, y); g.scale(s, s);
-  g.fillStyle = '#141414'; g.beginPath(); g.moveTo(-95, 140); g.quadraticCurveTo(-90, 40, -30, 30); g.lineTo(30, 30); g.quadraticCurveTo(90, 40, 95, 140); g.closePath(); g.fill();
-  g.beginPath(); g.ellipse(0, -10, 42, 50, 0, 0, 6.3); g.fill(); g.fillRect(-14, 20, 28, 20);
-  g.beginPath();
-  if (hair === 'spiky') { for (let i = 0; i <= 8; i++) { const a = Math.PI + (i / 8) * Math.PI; g.lineTo(Math.cos(a) * (60 + (i % 2) * 18), -20 + Math.sin(a) * (66 + (i % 2) * 14)); } }
-  if (hair === 'slick') { g.ellipse(4, -30, 50, 36, -0.2, Math.PI, 0); g.lineTo(60, -10); }
-  if (hair === 'cap') { g.ellipse(0, -36, 48, 28, 0, Math.PI, 0); g.rect(-48, -38, 110, 12); }
-  if (hair === 'buns') { g.ellipse(0, -30, 48, 34, 0, Math.PI, 0); g.moveTo(-40, -60); g.arc(-40, -60, 20, 0, 6.3); g.moveTo(60, -60); g.arc(40, -60, 20, 0, 6.3); g.rect(-50, -30, 18, 70); g.rect(32, -30, 18, 70); }
-  if (hair === 'beanie') { g.ellipse(0, -34, 48, 36, 0, Math.PI, 0); g.rect(-50, -36, 100, 16); }
-  if (hair === 'long') { g.ellipse(0, -28, 52, 36, 0, Math.PI, 0); g.rect(-54, -30, 22, 110); g.rect(32, -30, 22, 110); }
-  g.fill();
-  g.strokeStyle = accent; g.lineWidth = 5; g.beginPath(); g.ellipse(0, -10, 44, 52, 0, -1.2, 0.6); g.stroke(); g.beginPath(); g.moveTo(40, 34); g.quadraticCurveTo(88, 44, 94, 140); g.stroke();
-  g.fillStyle = '#fff'; g.save(); g.translate(-16, -6); g.rotate(0.15); g.fillRect(-12, -3, 22, 6); g.restore(); g.save(); g.translate(18, -6); g.rotate(-0.15); g.fillRect(-10, -3, 22, 6); g.restore();
-  g.fillStyle = accent; g.font = "bold 44px 'Yuji Syuku'"; g.textAlign = 'center'; g.fillText((PILOTS[id] || { kanji: '?' }).kanji, 0, 110);
+  const P = PILOTS[id] || { hair: 'long', kanji: '?' }, hair = P.hair, K = '#141414', D = '#2c2c31';
+  const path = (pts, close = true) => { g.beginPath(); pts.forEach(([a, b], i) => (i ? g.lineTo(a, b) : g.moveTo(a, b))); if (close) g.closePath(); };
+  g.save(); g.translate(x, y); g.scale(s, s); g.lineJoin = g.lineCap = 'round';
+  // pelo largo por detrás (Gen, Akane)
+  if (hair === 'long') { g.fillStyle = K; path([[-50, -40], [-62, 60], [-40, 92], [40, 92], [62, 60], [50, -40]]); g.fill(); }
+  // cuerpo: chaqueta con cuello y solapas
+  g.fillStyle = K; g.beginPath(); g.moveTo(-98, 140); g.quadraticCurveTo(-94, 46, -34, 30); g.lineTo(34, 30); g.quadraticCurveTo(94, 46, 98, 140); g.closePath(); g.fill();
+  g.strokeStyle = D; g.lineWidth = 4;
+  if (id === 'onibi') { g.fillStyle = '#d9d4c7'; path([[-30, 34], [-22, 140], [22, 140], [30, 34], [14, 52], [-14, 52]]); g.fill(); g.fillStyle = K; g.fillRect(-36, 34, 8, 106); g.fillRect(28, 34, 8, 106); }
+  else { g.beginPath(); g.moveTo(-30, 32); g.lineTo(-6, 92); g.moveTo(30, 32); g.lineTo(6, 92); g.moveTo(0, 92); g.lineTo(0, 140); g.stroke(); }
+  if (id === 'tsubame') { g.strokeStyle = '#efebe1'; g.lineWidth = 6; g.beginPath(); g.moveTo(-96, 104); g.lineTo(-40, 96); g.moveTo(96, 104); g.lineTo(40, 96); g.stroke(); }
+  // cuello y cabeza
+  g.fillStyle = K; g.fillRect(-14, 18, 28, 22);
+  if (id === 'kuroishi') {
+    g.beginPath(); g.ellipse(0, -16, 54, 60, 0, 0, 6.3); g.fill();
+    g.fillStyle = accent; path([[-46, -22], [48, -26], [44, 6], [-42, 8]]); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.75)'; path([[-30, -18], [-4, -20], [-14, -8], [-34, -6]]); g.fill();
+    g.strokeStyle = accent; g.lineWidth = 4; g.beginPath(); g.moveTo(-50, 26); g.quadraticCurveTo(0, 40, 50, 26); g.stroke();
+  } else { g.beginPath(); g.ellipse(0, -10, 42, 50, 0, 0, 6.3); g.fill(); }
+  // pelo y gorros
+  g.fillStyle = K; g.beginPath();
+  if (hair === 'spiky') { g.moveTo(-46, 4); for (let i = 0; i <= 10; i++) { const a = Math.PI * 0.95 + (i / 10) * Math.PI * 1.1, r = i % 2 ? 54 : 74; g.lineTo(Math.cos(a) * r, -22 + Math.sin(a) * r * 0.95); } g.lineTo(46, 4); g.lineTo(30, -20); g.lineTo(10, -8); g.lineTo(-6, -24); g.lineTo(-26, -6); }
+  if (hair === 'slick') { g.moveTo(-44, 0); g.quadraticCurveTo(-56, -64, 10, -66); g.quadraticCurveTo(66, -60, 50, -10); g.lineTo(34, -30); g.quadraticCurveTo(0, -40, -40, -24); }
+  if (hair === 'cap') { g.ellipse(0, -34, 48, 30, 0, Math.PI, 0); g.rect(-48, -38, 96, 10); g.moveTo(-40, -32); g.lineTo(-86, -24); g.lineTo(-84, -14); g.lineTo(-38, -20); }
+  if (hair === 'buns') { g.ellipse(0, -30, 48, 34, 0, Math.PI, 0); g.moveTo(-24, -66); g.arc(-44, -66, 20, 0, 6.3); g.moveTo(64, -66); g.arc(44, -66, 20, 0, 6.3); g.rect(-50, -32, 14, 60); g.rect(36, -32, 14, 60); }
+  if (hair === 'beanie') { g.ellipse(0, -36, 48, 40, 0, Math.PI, 0); g.rect(-51, -38, 102, 18); }
+  if (hair === 'long') { g.ellipse(0, -28, 52, 36, 0, Math.PI, 0); g.moveTo(-50, -26); g.lineTo(-10, -26); g.lineTo(-30, 2); }
+  if (id !== 'kuroishi') g.fill();
+  // detalles por personaje
+  const W = '#efebe1';
+  if (id === 'hayate') { // cascos al cuello y cicatriz
+    g.strokeStyle = accent; g.lineWidth = 7; g.beginPath(); g.arc(0, 26, 40, 0.15, Math.PI - 0.15); g.stroke();
+    g.fillStyle = accent; g.fillRect(-48, 22, 16, 24); g.fillRect(32, 22, 16, 24);
+    g.strokeStyle = W; g.lineWidth = 2; g.beginPath(); g.moveTo(8, 30); g.lineTo(14, 36); g.stroke();
+  }
+  if (id === 'kurogane') { // mechón plateado y cadena de oro
+    g.strokeStyle = '#c9ccd2'; g.lineWidth = 5; g.beginPath(); g.moveTo(-30, -50); g.quadraticCurveTo(10, -66, 44, -40); g.stroke();
+    g.strokeStyle = '#e0b23a'; g.lineWidth = 3; g.setLineDash([4, 3]); g.beginPath(); g.arc(0, 30, 30, 0.3, Math.PI - 0.3); g.stroke(); g.setLineDash([]);
+  }
+  if (id === 'tsubame') { // barro en la mejilla y broche de la gorra
+    g.fillStyle = '#7a5a3a'; g.beginPath(); g.ellipse(22, 10, 9, 5, -0.3, 0, 6.3); g.fill();
+    g.fillStyle = accent; g.fillRect(-6, -44, 12, 8);
+  }
+  if (id === 'sakura') { // mechas rosas, aros, pegatina de estrella y spray
+    g.strokeStyle = accent; g.lineWidth = 5; g.beginPath(); g.moveTo(-30, -58); g.quadraticCurveTo(-14, -40, -36, -10); g.moveTo(28, -58); g.quadraticCurveTo(16, -40, 38, -10); g.stroke();
+    g.lineWidth = 3; g.beginPath(); g.arc(-42, 18, 8, 0, 6.3); g.moveTo(50, 18); g.arc(42, 18, 8, 0, 6.3); g.stroke();
+    g.fillStyle = accent; path(Array.from({ length: 10 }, (_, i) => { const a = -Math.PI / 2 + (i * Math.PI) / 5, r = i % 2 ? 4 : 10; return [24 + Math.cos(a) * r, 12 + Math.sin(a) * r]; })); g.fill();
+    g.save(); g.translate(74, 60); g.rotate(0.35); g.fillStyle = '#d9d4c7'; g.fillRect(-12, -30, 24, 56); g.fillStyle = accent; g.fillRect(-12, -14, 24, 16); g.fillStyle = K; g.fillRect(-5, -40, 10, 10); g.restore();
+  }
+  if (id === 'pico') { g.strokeStyle = accent; g.lineWidth = 6; g.beginPath(); g.moveTo(-50, -26); g.lineTo(50, -26); g.stroke(); }
+  if (id === 'onibi') { // canas, barba de tres días y palillo
+    g.strokeStyle = '#9a978f'; g.lineWidth = 3; for (const dx of [-30, -12, 16]) { g.beginPath(); g.moveTo(dx, -58); g.quadraticCurveTo(dx - 10, -36, dx - 22, -20); g.stroke(); }
+    g.fillStyle = '#5a5a5a'; for (let i = 0; i < 26; i++) g.fillRect(-22 + ((i * 37) % 44), 18 + ((i * 13) % 14), 2, 2);
+    g.strokeStyle = '#c9a36a'; g.lineWidth = 3; g.beginPath(); g.moveTo(6, 26); g.lineTo(30, 20); g.stroke();
+  }
+  if (id === 'akane') { // mechón naranja y cicatriz en la ceja
+    g.strokeStyle = accent; g.lineWidth = 6; g.beginPath(); g.moveTo(20, -60); g.quadraticCurveTo(46, -30, 50, 40); g.stroke();
+    g.strokeStyle = W; g.lineWidth = 2; g.beginPath(); g.moveTo(-26, -24); g.lineTo(-10, -12); g.stroke();
+  }
+  // luz de borde
+  g.strokeStyle = accent; g.lineWidth = 5; g.beginPath(); if (id === 'kuroishi') g.ellipse(0, -16, 56, 62, 0, -1.2, 0.6); else g.ellipse(0, -10, 44, 52, 0, -1.2, 0.6); g.stroke();
+  g.beginPath(); g.moveTo(40, 34); g.quadraticCurveTo(90, 44, 96, 140); g.stroke();
+  // ojos y boca
+  if (id !== 'kuroishi') {
+    g.fillStyle = W;
+    if (id === 'pico') { // gafas redondas, pecas y sonrisa
+      g.strokeStyle = W; g.lineWidth = 3; g.beginPath(); g.arc(-17, -6, 11, 0, 6.3); g.moveTo(29, -6); g.arc(18, -6, 11, 0, 6.3); g.moveTo(-6, -6); g.lineTo(7, -6); g.stroke();
+      g.fillRect(-19, -8, 4, 4); g.fillRect(16, -8, 4, 4);
+      g.fillStyle = '#c98a5a'; for (const [a, b] of [[-26, 10], [-20, 13], [24, 10], [18, 13]]) g.fillRect(a, b, 3, 3);
+      g.fillStyle = W; g.beginPath(); g.ellipse(0, 26, 10, 7, 0, 0, Math.PI); g.fill();
+    } else {
+      const tilt = id === 'kurogane' ? 0.28 : id === 'tsubame' ? 0.02 : 0.15;
+      g.save(); g.translate(-16, -6); g.rotate(tilt); g.fillRect(-12, -3, 22, 6); g.restore(); g.save(); g.translate(18, -6); g.rotate(-tilt); g.fillRect(-10, -3, 22, 6); g.restore();
+      g.strokeStyle = W; g.lineWidth = 2.5; g.beginPath();
+      if (id === 'sakura' || id === 'akane') { g.moveTo(-10, 22); g.quadraticCurveTo(2, 30, 14, 20); } else if (id === 'kurogane') { g.moveTo(-8, 24); g.lineTo(12, 21); } else { g.moveTo(-8, 24); g.lineTo(10, 24); }
+      g.stroke();
+    }
+  }
+  // kanji en el pecho
+  g.fillStyle = accent; g.font = "bold 44px 'Yuji Syuku'"; g.textAlign = 'center'; g.fillText(P.kanji, id === 'onibi' ? 52 : 0, 118);
   g.restore();
 }
 
